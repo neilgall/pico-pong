@@ -11,6 +11,7 @@ using namespace pimoroni;
 const uint32_t BAT_WIDTH = 4;
 const uint32_t BAT_HEIGHT = 40;
 const uint32_t BALL_RADIUS = 5;
+const uint32_t START_DELAY = 40;
 
 uint16_t buffer[PicoDisplay::WIDTH * PicoDisplay::HEIGHT];
 PicoDisplay pico_display(buffer);
@@ -28,12 +29,12 @@ struct Player {
 
   void up() {
     if (y > BAT_HEIGHT / 2)
-      y--;
+      y -= 2;
   }
 
   void down() {
     if (y < PicoDisplay::HEIGHT - BAT_HEIGHT / 2 - 1)
-      y++;
+      y += 2;
   }
 
   void draw() {
@@ -49,15 +50,26 @@ struct Ball {
   Point start;
   Point pos;
   int32_t xd, yd;
+  uint32_t delay;
 
   Ball(Point pos)
     : start(pos)
-    , pos(pos)
-    , xd(1)
-    , yd(1)
-  {}
+    , xd(2)
+    , yd(2)
+  {
+    reset();
+  }
+
+  void reset() {
+    pos = start;
+    delay = START_DELAY;
+  }
 
   void move(Player &player1, Player &player2) {
+    if (delay > 0 && --delay) {
+      return;
+    }
+
     pos.x += xd;
     pos.y += yd;
 
@@ -69,7 +81,7 @@ struct Ball {
         xd = -xd;
       else {
         player2.score++;
-        pos = start;
+        reset();
       }
     }
 
@@ -78,7 +90,7 @@ struct Ball {
         xd = -xd;
       else {
         player1.score++;
-        pos = start;
+        reset();
       }
     }
   }
